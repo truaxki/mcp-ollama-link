@@ -1,15 +1,27 @@
+"""The purpose of this module is to provide a streaming chat interface for Ollama."""
+
 from ollama import Client
 from typing import List, Dict
 
 # Create a single client instance
 client = Client(host='http://localhost:11434')
 
-def query_ollama_stream(messages: List[Dict[str, str]]):
+def query_ollama_stream(messages: List[Dict[str, str]], model: str = "llama2") -> str:
+    """
+    Stream responses from Ollama model while maintaining chat history.
+    
+    Args:
+        messages: List of message dictionaries with 'role' and 'content'
+        model: Name of the Ollama model to use
+    
+    Returns:
+        str: The complete response from the model
+    """
     try:
         response_content = ""
         # Stream the response
         for chunk in client.chat(
-            model='llama2',
+            model=model,
             messages=messages,
             stream=True
         ):
