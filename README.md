@@ -2,6 +2,8 @@
 
 Initiate Ollama queries via Claude.
 
+<a href="https://glama.ai/mcp/servers/y75yyd2wtk"><img width="380" height="200" src="https://glama.ai/mcp/servers/y75yyd2wtk/badge" alt="Ollama Link MCP server" /></a>
+
 ## Components
 
 ### Resources
