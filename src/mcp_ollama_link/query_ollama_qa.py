@@ -15,17 +15,16 @@ async def query_ollama(prompt: str, model: str) -> str | None:
         str | None: The model's response or None if the query fails
     """
     try:
-        print(f"[DEBUG] Starting Ollama query...")
-        print(f"[DEBUG] Model: {model}")
-        print(f"[DEBUG] Prompt: {prompt}")
-        
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Quick health check without logging
             try:
-                health_check = await client.get("http://localhost:11434/api/version")
-                print(f"[DEBUG] Ollama server status: {health_check.status_code}")
-            except Exception as e:
-                print(f"[DEBUG] Ollama server not responding: {e}")
-                return json.dumps({"error": "Ollama server not responding"})
+                await client.get("http://localhost:11434/api/version")
+            except httpx.ConnectError:
+                print("Failed to connect to Ollama server")
+                return None
+            except httpx.TimeoutException:
+                print("Timeout while checking Ollama server")
+                return None
 
             payload = {
                 "model": model,
@@ -33,26 +32,29 @@ async def query_ollama(prompt: str, model: str) -> str | None:
                 "stream": False
             }
             
-            print(f"[DEBUG] Sending request to Ollama...")
-            response = await client.post(
-                "http://localhost:11434/api/generate",
-                json=payload,
-            )
-            
-            print(f"[DEBUG] Response status: {response.status_code}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                return result.get("response", "No response content")
-            else:
-                error_msg = f"Error from Ollama API: {response.status_code}"
-                print(f"[DEBUG] {error_msg}")
-                return json.dumps({"error": error_msg})
+            try:
+                response = await client.post(
+                    "http://localhost:11434/api/generate",
+                    json=payload,
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    return result.get("response", "No response content")
+                else:
+                    print(f"Ollama returned status code: {response.status_code}")
+                    return None
+                    
+            except httpx.ConnectError:
+                print("Lost connection to Ollama server during query")
+                return None
+            except httpx.TimeoutException:
+                print("Timeout while waiting for Ollama response")
+                return None
                 
     except Exception as e:
-        error_msg = f"Error querying Ollama: {str(e)}"
-        print(f"[DEBUG] {error_msg}")
-        return json.dumps({"error": error_msg})
+        print(f"Unexpected error while querying Ollama: {str(e)}")
+        return None
 
 if __name__ == "__main__":
     prompt = """ 

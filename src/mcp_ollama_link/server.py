@@ -35,7 +35,20 @@ async def handle_list_tools() -> list[types.Tool]:
                     "model": {
                         "type": "string",
                         "default": "deepseek-r1:8b",
-                        "description": "The Ollama model to use for the query"
+                        "description": 
+                        """default: deepseek-r1:8b
+                        Available models:
+                        - deepseek-r1:32b (19 GB)
+                        - deepseek-r1:7b (4.7 GB)
+                        - deepseek-r1:8b (4.9 GB)
+                        - deepseek-r1:1.5b (1.1 GB)
+                        - llava-llama3 (5.5 GB)
+                        - llava (4.7 GB)
+                        - llama3.2-vision (7.9 GB)
+                        - llama3.3 (42 GB)
+                        - llama2 (3.8 GB)
+                        - llama3.2 (2.0 GB)
+                        The Ollama model to use for the query"""
                     }
                 },
                 "required": ["query", "context", "model"]
@@ -71,14 +84,7 @@ async def handle_call_tool(
                     )
                 ]
             
-            # Debug print
-            print(f"Sending request with model: {model}")
-            print(f"Query: {query}")
-            print(f"Context: {context}")
-            
-            # Combine query and context
             full_prompt = f"Context: {context}\n\nQuery: {query}"
-            
             response = await query_ollama(full_prompt, model)
             
             if response is None:
